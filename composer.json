@@ -1,0 +1,21 @@
+{
+    "name": "jc-it/yii2-active-record-log",
+    "type": "yii2-extension",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Joey Claessen",
+            "email": "joey_claessen@hotmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "autoload": {
+        "psr-4": {
+            "JCIT\\Yii2\\ActiveRecordLog\\": "src/"
+        }
+    },
+    "require": {},
+    "extra": {
+        "bootstrap": "JCIT\\Yii2\\ActiveRecordLog\\Bootstrap"
+    }
+}

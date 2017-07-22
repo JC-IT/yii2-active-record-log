@@ -20,7 +20,7 @@ class Module extends \yii\base\Module
         ],
         'updateEvents' => [
             ActiveRecord::EVENT_AFTER_INSERT,
-            ActiveRecord::EVENT_AFTER_UPDATE
+            ActiveRecord::EVENT_BEFORE_UPDATE
         ]
     ];
 
@@ -38,6 +38,8 @@ class Module extends \yii\base\Module
                 $classConfig = $this->defaultClassConfig;
             }
 
+            $classConfig = array_merge($this->defaultClassConfig, $classConfig);
+
             $readEvents = ArrayHelper::getValue($classConfig, 'readEvents', []);
             foreach ($readEvents as $event => $eventConfig) {
                 if (is_string($eventConfig)) {
@@ -45,7 +47,7 @@ class Module extends \yii\base\Module
                    $eventConfig = [];
                 }
 
-                $eventConfig['logModelClass'] = $eventConfig['logModelClass'] ?? $classConfig['logModelClass'];
+                $eventConfig['logModelClass'] = $eventConfig['logModelClass'] ?? $this->logModelClass;
 
                 Event::on($class, $event, function(Event $event) use ($eventConfig) {
                     $this->logRead($event->sender, $eventConfig, $event);
@@ -59,7 +61,7 @@ class Module extends \yii\base\Module
                     $eventConfig = [];
                 }
 
-                $eventConfig['logModelClass'] = $eventConfig['logModelClass'] ?? $classConfig['logModelClass'];
+                $eventConfig['logModelClass'] = $eventConfig['logModelClass'] ?? $this->logModelClass;
 
                 Event::on($class, $event, function(Event $event) use ($eventConfig) {
                     $this->logUpdate($event->sender, $eventConfig, $event);
@@ -71,14 +73,17 @@ class Module extends \yii\base\Module
     public function logRead(ActiveRecord $model, $eventConfig = [], $event = null)
     {
         $log = $this->createLog($model, $eventConfig, $event);
-
         return $this->saveLog($log);
     }
 
     public function logUpdate(ActiveRecord $model, $eventConfig = [], $event = null)
     {
         $log = $this->createLog($model, $eventConfig, $event);
-        $log->old_attributes = $model->oldAttributes;
+        $attributes = $model->oldAttributes;
+        $attributes = array_filter($attributes, function($value, $attribute) use ($model) {
+            return $model->{$attribute} != $value;
+        }, ARRAY_FILTER_USE_BOTH);
+        $log->old_attributes = json_encode($attributes, JSON_FORCE_OBJECT);
         return $this->saveLog($log);
     }
 
@@ -94,7 +99,7 @@ class Module extends \yii\base\Module
         $log->model_class = get_class($model);
         $log->model_id = $model->getPrimaryKey();
         $log->event = $event instanceof Event ? $event->name : $event;
-        $log->current_attributes = json_encode($model->attributes);
+        $log->current_attributes = json_encode($model->attributes, JSON_FORCE_OBJECT);
         return $log;
     }
 

@@ -26,7 +26,8 @@ class Log extends ActiveRecord
         return [
             BlameableBehavior::class => [
                 'class' => BlameableBehavior::class,
-                'createdByAttribute' => 'user_id'
+                'createdByAttribute' => 'user_id',
+                'updatedByAttribute' => false
             ],
             TimestampBehavior::class => [
                 'class' => TimestampBehavior::class,

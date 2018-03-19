@@ -4,6 +4,7 @@ namespace JCIT\Yii2\ActiveRecordLog;
 
 use JCIT\Yii2\ActiveRecordLog\models\Log;
 use yii\base\Event;
+use yii\console\Application;
 use yii\db\ActiveRecord;
 use yii\helpers\ArrayHelper;
 
@@ -26,6 +27,10 @@ class Module extends \yii\base\Module
 
     public function init()
     {
+        if (\Yii::$app instanceof Application) {
+            $this->controllerNamespace = 'JCIT\Yii2\ActiveRecordLog\commands';
+        }
+
         if (empty($this->logClasses)) {
             $classes = [ActiveRecord::class];
         } else {
